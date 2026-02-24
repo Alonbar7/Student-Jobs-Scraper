@@ -1,4 +1,5 @@
 import requests
+import urllib.parse
 from bs4 import BeautifulSoup
 import time
 import random
@@ -23,30 +24,24 @@ class JobFinder:
         self.location = location
         self.positions = positions
 
-    def construct_link(self):
-        # Base url
-        url = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords="
-        
-        # Add positions
-        if not self.types:
+    def construct_link(self):        
+        if not self.positions:
             return None
 
+        # Create search query
+        search = ""
         for position in self.positions:
-            updated = position.replace(" ", "+")
-            url += updated
-        
-        # Add locations
-        url += f"&location={self.location}"
-        url += "&f_E=1,2&f_JT=P,I&start=0"
+            search += f" OR {position}"
+        search = search[4::]
 
-        self.url = url
+        # Construct url
+        # url = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=Data+Engineer&location=Israel&f_E=1,2&f_JT=P,I&start=0"
+        url = f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={search}&location={self.location}&f_E=1,2&f_JT=P,I&start=0"
 
         return url
 
     def fetch_linkedin_jobs(self):
-        # Url link specified for my needs
-        # url = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=Data+Engineer&location=Israel&f_E=1,2&f_JT=P,I&start=0"
-        self.construct_link()
+        url = self.construct_link()
 
         # Browswer agent
         headers = {
@@ -55,7 +50,7 @@ class JobFinder:
         
         try:
             # Request Guest API
-            response = requests.get(self.url, headers=headers)
+            response = requests.get(url, headers=headers)
 
             if response.status_code != 200:
                 print(f"API request failed. Status code: {response.status_code}")
@@ -71,10 +66,9 @@ class JobFinder:
             if not job_cards:
                 job_cards = soup.find_all('li')
 
-            print(f"Found {len(job_cards)} jobs.")
-            print("-" * 40)
-
-            jobs = []
+            # Save jobs
+            self.jobs = []
+            self.job_number = len(job_cards)
 
             # Get elements
             for index, card in enumerate(job_cards, start=1):
@@ -91,18 +85,14 @@ class JobFinder:
                     clean_link = job_link.split('?')[0]
                     
                     job = Job(title, company, clean_link)
-                    jobs.append(job)
+                    self.jobs.append(job)
 
                 except Exception as e:
                     print(e)
-                    return jobs if jobs else None
+                    return self.jobs if self.jobs else None
         except Exception:
             print("Failuer Exceuting")
             return None
         
-        return jobs
-
-jobFinder = JobFinder()
-jobs = jobFinder.fetch_linkedin_jobs()
-for job in jobs:
-    print(job)
+        return self.jobs
+    
