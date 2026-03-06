@@ -22,9 +22,10 @@ class Job:
 # Job API Request & Proccessing
 class JobFinder:
     
-    def __init__(self, location="Israel", positions=["Date Engineer"]):
+    def __init__(self, location="Israel", positions = ["Date Engineer"], blacklist = []):
         self.location = location
         self.positions = positions
+        self.blacklist = blacklist
 
     def construct_link(self, start = 0):        
         if not self.positions:
@@ -85,6 +86,13 @@ class JobFinder:
                         company_elem = card.find('h4', class_='base-search-card__subtitle')
                         company = company_elem.get_text(strip=True) if company_elem else "N/A"
                         
+                        # Filter blacklist jobs
+                        title_lower = title.lower()
+                        company_lower = company.lower()
+                        if any(banned_word.lower() in title_lower or banned_word.lower() in company_lower for banned_word in self.blacklist):
+                            print(f"Filtered by blacklist: {title} from {company}")
+                            continue
+                        
                         link_elem = card.find('a', class_='base-card__full-link')
                         job_link = link_elem['href'] if link_elem and 'href' in link_elem.attrs else "No Link"
                         
@@ -105,6 +113,7 @@ class JobFinder:
                 
                 # Go to the next page
                 job_start_index += len(job_cards)
+                page_number += 1
                 
                 # Rest to counter block
                 time.sleep(random.uniform(2.0, 4.0))
