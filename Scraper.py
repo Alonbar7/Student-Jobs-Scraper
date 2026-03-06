@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import urllib.parse
 import time
 import random
 import re
@@ -30,21 +31,23 @@ class JobFinder:
             return None
 
         # Create search query
-        search = ""
-        for position in self.positions:
-            search += f" OR {position}"
-        search = search[4::]
+        search = " OR ".join(self.positions)
+        encoded_search = urllib.parse.quote(search)
 
         # Construct url
         # url = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=Data+Engineer&location=Israel&f_E=1,2&f_JT=P,I&start=0"
-        url = f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={search}&location={self.location}&f_E=1,2&f_JT=P,I&sortBy=DD&start={start}"
-
+        url = f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={encoded_search}&location={self.location}&f_E=1,2&f_JT=P,I&sortBy=DD&start={start}"
+        print(url)
         return url
 
     def fetch_linkedin_jobs(self):
         # Url page counter
-        start = 0
-
+        page_number = 0
+        job_start_index = 0
+        
+        # Jobs holder
+        self.jobs = []
+        
         # Browswer agent
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -53,16 +56,13 @@ class JobFinder:
         while True:
             try:
                 # Create url
-                url = self.construct_link(start)
+                url = self.construct_link(job_start_index)
                 
                 # Request Guest API
                 response = requests.get(url, headers=headers)
 
                 if response.status_code != 200:
-                    print(f"API request failed. Status code: {response.status_code}")
                     return None
-                else:
-                    print("API Request Worked!")
 
                 # Proccessing the information
                 soup = BeautifulSoup(response.text, 'html.parser')
@@ -75,10 +75,6 @@ class JobFinder:
                 # Break loop if reached an empty page
                 if not job_cards:
                     break
-
-                # Save jobs
-                self.jobs = []
-                self.job_number = len(job_cards)
 
                 # Get elements
                 for index, card in enumerate(job_cards, start=1):
@@ -104,9 +100,11 @@ class JobFinder:
                     except Exception as e:
                         print(e)
                         return self.jobs if self.jobs else None
+                    
+                print(f'Scanned page {page_number}, {len(job_cards)} found.')
                 
                 # Go to the next page
-                start += len(job_cards)
+                job_start_index += len(job_cards)
                 
                 # Rest to counter block
                 time.sleep(random.uniform(2.0, 4.0))
