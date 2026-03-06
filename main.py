@@ -6,7 +6,9 @@ import os
 def main():
 
     # Fetch all jobs
-    jobFinder = JobFinder("Israel", ["Data Engineer"])
+    intrests = ["Data Engineering Student", "Student Data Engineer", "Python Student"]
+    blacklist = ["Electrical"]
+    jobFinder = JobFinder("Israel", intrests, blacklist)
     jobs = jobFinder.fetch_linkedin_jobs()
     
     # Get bot token and chat id
@@ -20,10 +22,14 @@ def main():
     url = f"mongodb+srv://{username}:{password}@student-jobs.fw1npmz.mongodb.net/?appName=student-jobs"
     db = Database(url)
     
+    new_jobs = 0
     for job in jobs:
         result = db.list_jobs(job)
         if result: 
+            new_jobs += 1
             bot.send_message(str(job))
             print(job)
+        
+    print(f"Added {new_jobs} new jobs.")
 
 main()
