@@ -1,5 +1,6 @@
 from Scraper import *
 from MessageBot import MessageBot
+from Database import Database
 import os
 
 def main():
@@ -17,9 +18,12 @@ def main():
     username = os.environ["MONGODB_USERNAME"]
     password = os.environ["MONGODB_PASSWORD"]
     url = f"mongodb+srv://{username}:{password}@student-jobs.fw1npmz.mongodb.net/?appName=student-jobs"
+    db = Database(url)
     
     for job in jobs:
-        bot.send_message(str(job))
-        print(job)
+        result = db.list_jobs(job)
+        if result: 
+            bot.send_message(str(job))
+            print(job)
 
 main()
