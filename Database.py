@@ -28,7 +28,7 @@ class Database:
     # Create listing on db
     def _process_job_listing(self, collection, job: Job):
         job_document = {
-            "job_id": job.job_id,
+            "job_id": job.id,
             "title": job.title,
             "company": job.company,
             "link": job.link,
@@ -37,7 +37,7 @@ class Database:
 
         # Add it if its new
         result = collection.update_one(
-            {"job_id": job.job_id},
+            {"job_id": job.id},
             {"$setOnInsert": job_document},
             upsert=True
         )
@@ -48,7 +48,7 @@ class Database:
     # User function to add a job to db
     def list_jobs(self, job: Job):
         connection = self._connect_to_mongo()
-        if not connection:
+        if connection is None:
             return False
         
         result = self._process_job_listing(connection, job)
