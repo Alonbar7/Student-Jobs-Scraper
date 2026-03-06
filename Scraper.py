@@ -1,12 +1,11 @@
 import requests
-import urllib.parse
 from bs4 import BeautifulSoup
-import time
-import random
+import re
 
 # Job container
 class Job:
-    def __init__(self, title, company, link):
+    def __init__(self, job_id, title, company, link):
+        self.id = job_id
         self.title = title
         self.company = company
         self.link = link
@@ -84,7 +83,11 @@ class JobFinder:
                     
                     clean_link = job_link.split('?')[0]
                     
-                    job = Job(title, company, clean_link)
+                    regex_id = re.search(r'\d{9,10}', clean_link)
+                    if not regex_id: continue
+                    job_id = regex_id.group(0)
+                    
+                    job = Job(job_id, title, company, clean_link)
                     self.jobs.append(job)
 
                 except Exception as e:
