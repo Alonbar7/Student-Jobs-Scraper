@@ -8,6 +8,7 @@ class Database:
     
     def __init__(self, connection_url):
         self.url = connection_url
+        self.connection = self._connect_to_mongo()
 
     # Connect to db
     def _connect_to_mongo(self):
@@ -20,13 +21,15 @@ class Database:
             # Create index
             collection.create_index("job_id", unique=True)
             
+            print("Connection to db worked")
             return collection
             
         except ConnectionFailure as e:
+            print("Connection to db failed")
             return None
 
     # Create listing on db
-    def _process_job_listing(self, collection, job: Job):
+    def _process_job_listing(self, job: Job):
         job_document = {
             "job_id": job.id,
             "title": job.title,
@@ -36,7 +39,7 @@ class Database:
         }
 
         # Add it if its new
-        result = collection.update_one(
+        result = self.connection.update_one(
             {"job_id": job.id},
             {"$setOnInsert": job_document},
             upsert=True
@@ -47,9 +50,9 @@ class Database:
     
     # User function to add a job to db
     def list_jobs(self, job: Job):
-        connection = self._connect_to_mongo()
-        if connection is None:
+        # Check if connection exists
+        if self.connection is None:
             return False
         
-        result = self._process_job_listing(connection, job)
+        result = self._process_job_listing(job)
         return result
