@@ -26,6 +26,7 @@ class Database:
             
         except ConnectionFailure as e:
             print("Connection to db failed")
+            print(e)
             return None
 
     # Create listing on db
