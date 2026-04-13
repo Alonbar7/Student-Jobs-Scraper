@@ -19,7 +19,7 @@ def main():
     # Get db username and password
     username = os.environ["MONGODB_USERNAME"]
     password = os.environ["MONGODB_PASSWORD"]
-    url = f"mongodb+srv://{username}:{password}@student-jobs.fw1npmz.mongodb.net/?appName=student-jobs"
+    url = f"mongodb+srv://{username}:{password}@student-jobs.fwwrw0y.mongodb.net/?appName=student-jobs"
     db = Database(url)
     
     new_jobs = 0
