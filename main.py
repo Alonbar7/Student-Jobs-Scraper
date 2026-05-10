@@ -6,8 +6,8 @@ import os
 def main():
 
     # Fetch all jobs
-    intrests = ["Data Engineering Student", "Student Data Engineer", "Python Student"]
-    blacklist = ["Electrical"]
+    intrests = ["Data Engineering Student", "Student Data Engineer", "Python Student", "Data Student", "Student Data Internship"]
+    blacklist = []
     jobFinder = JobFinder("Israel", intrests, blacklist)
     jobs = jobFinder.fetch_linkedin_jobs()
     
